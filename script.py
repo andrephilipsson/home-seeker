@@ -1,11 +1,20 @@
 #!/usr/local/bin python3
 
-import requests
 import json
-import datetime
+import requests
+from datetime import datetime, date
 
 URL = "https://www.afbostader.se/redimo/rest/vacantproducts"
 CACHE_FILE = "apartments.json"
+TODAY = date.today()
+
+
+def get_data():
+    response = requests.get(URL)
+    # If the response wasn't ok,
+    # throw an error here so that we don't mess up the cache later
+    response.raise_for_status()
+    return response.json()["product"]
 
 
 def load_cache():
@@ -17,75 +26,64 @@ def load_cache():
         return []
 
 
-def update_cache(apartments):
-    old_cache = load_cache()
+def update_cache(apts):
+    cache = load_cache()
 
-    for apartment in old_cache:
-        reserve_until_date = datetime.datetime.strptime(
-            apartment["reserveUntilDate"], "%Y-%m-%d"
+    for apt in cache:
+        reserve_date = datetime.strptime(
+            apt["reserveUntilDate"], "%Y-%m-%d"
         ).date()
 
-        if datetime.date.today() > reserve_until_date:
-            old_cache.remove(apartment)
+        if TODAY > reserve_date:
+            cache.remove(apt)
 
-    all_apartments = old_cache
-    new_apartments = []
-    apartment_ids = [a["productId"] for a in old_cache]
-
-    for apartment in apartments:
-        apartment_id = apartment["productId"]
-
-        if apartment_id not in apartment_ids:
-            new_apartments.append(apartment)
-            all_apartments.append(apartment)
+    apt_ids = [a["productId"] for a in cache]
+    new_apts = [a for a in apts if a["productId"] not in apt_ids]
+    all_apts = cache + new_apts
 
     with open(CACHE_FILE, "w") as f:
-        json.dump(all_apartments, f)
+        json.dump(all_apts, f)
 
-    return new_apartments
+    return new_apts
 
 
-def pretty_print(apartment):
-    return f"""{apartment["address"]}:
-    Area: {apartment["area"]}
-    Square meters: {apartment["sqrMtrs"]}
-    Rooms: {apartment["shortDescription"][:1]}
-    Rent: {apartment["rent"]}
-    Move in date: {apartment["moveInDate"]}
-    Last day to reserve: {apartment["reserveUntilDate"]}
+def filter_apartments(apts):
+    filtered_apts = []
+    for apt in apts:
+        if apt["type"] == "Lägenhet":
+            filtered_apts.append(apt)
+
+    return filtered_apts
+
+
+def pretty_print(apt):
+    reserve_date = datetime.strptime(
+        apt["reserveUntilDate"], "%Y-%m-%d"
+    ).date()
+
+    return f"""{apt["address"]}:
+    Area:           {apt["area"]}
+    Rooms:          {apt["shortDescription"][:1]}
+    Square meters:  {apt["sqrMtrs"]}
+    Rent:           {apt["rent"]}
+    Move in date:   {apt["moveInDate"]}
+    Reserve before: {reserve_date}, {(reserve_date - TODAY).days} day(s)
 """
 
 
-def filter_data(data):
-    filtered_data = []
-    for apt in data:
-        if apt["type"] == "Lägenhet":
-            filtered_data.append(apt)
+def print_new_apartments(apts):
+    print(f"Today's date: {TODAY}")
+    print("These new apartments were found:\n")
 
-    return filtered_data
-
-
-def get_data():
-    response = requests.get(URL)
-    # If the response wasn't ok,
-    # throw an error here so that we don't mess up the cache later
-    response.raise_for_status()
-    return response.json()["product"]
-
-
-def print_new_apartments(apartments):
-    print(f"Date: {datetime.date.today()}")
-    print("These new apartments was found:\n")
-
-    for i, apt in enumerate(apartments):
+    for i, apt in enumerate(apts):
         print(f"{i + 1}. {pretty_print(apt)}")
 
 
 def main():
     data = get_data()
-    filtered_data = filter_data(data)
-    new_aps = update_cache(filtered_data)
-    print_new_apartments(new_aps)
+    filtered_apts = filter_apartments(data)
+    new_apts = update_cache(filtered_apts)
+    print_new_apartments(new_apts)
 
 
 if __name__ == "__main__":
