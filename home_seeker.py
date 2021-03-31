@@ -1,4 +1,4 @@
-#!/usr/local/bin python3
+#!/usr/bin/python3
 
 import json
 import requests
@@ -48,6 +48,7 @@ def update_cache(apts):
 
 
 def filter_apartments(apts):
+    # TODO: Make this customizable
     filtered_apts = []
     for apt in apts:
         if apt["type"] == "Lägenhet":
