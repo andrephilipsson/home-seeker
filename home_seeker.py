@@ -64,8 +64,6 @@ def filter_apartments(apts):
     filtered_apts = []
     for apt in apts:
         # This is where you would add your own filters
-        if apt["type"] != "Lägenhet":
-            continue
 
         filtered_apts.append(apt)
 
