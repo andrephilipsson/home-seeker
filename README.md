@@ -5,7 +5,7 @@ A Python script that checks for available apartments on AF Bostäder.
 To install the required dependencies run:
 `pip install -r requirements.txt`
 
-## Run the program
+## Running the program
 To run the program you simply type: `python3 home_seeker.py`
 
 ## Configuration
