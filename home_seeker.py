@@ -5,9 +5,11 @@ import requests
 import smtplib
 import ssl
 from datetime import datetime, date
+from pathlib import Path
 
 # Should be absolute path or path relative to current directory
-CACHE_FILE = "apartments.json"
+CACHE_FILE = Path(__file__).parent / "apartments.json"
+CONFIG_FILE = Path(__file__).parent / "config.json"
 URL = "https://www.afbostader.se/redimo/rest/vacantproducts"
 TODAY = date.today()
 config = None
@@ -16,7 +18,7 @@ config = None
 def load_config():
     global config
     try:
-        with open("config.json", "r") as config_file:
+        with open(CONFIG_FILE, "r") as config_file:
             config = json.load(config_file)
     except FileNotFoundError:
         print("No config file found. Will send results to stdout.\n")
