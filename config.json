@@ -1,0 +1,7 @@
+{
+  "email": "example@example.com",
+  "password": "supersecretpassword",
+  "port": 587,
+  "smtpServer": "smtp.example.com",
+  "sendEmail": false
+}
