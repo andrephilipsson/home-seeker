@@ -4,8 +4,9 @@ import json
 import requests
 from datetime import datetime, date
 
-URL = "https://www.afbostader.se/redimo/rest/vacantproducts"
+# Should be absolute path or path relative to current directory
 CACHE_FILE = "apartments.json"
+URL = "https://www.afbostader.se/redimo/rest/vacantproducts"
 TODAY = date.today()
 
 
@@ -48,11 +49,13 @@ def update_cache(apts):
 
 
 def filter_apartments(apts):
-    # TODO: Make this customizable
     filtered_apts = []
     for apt in apts:
-        if apt["type"] == "Lägenhet":
-            filtered_apts.append(apt)
+        # This is where you would add your own filters
+        if apt["type"] != "Lägenhet":
+            continue
+
+        filtered_apts.append(apt)
 
     return filtered_apts
 
