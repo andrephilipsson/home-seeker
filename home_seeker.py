@@ -2,12 +2,24 @@
 
 import json
 import requests
+import smtplib
+import ssl
 from datetime import datetime, date
 
 # Should be absolute path or path relative to current directory
 CACHE_FILE = "apartments.json"
 URL = "https://www.afbostader.se/redimo/rest/vacantproducts"
 TODAY = date.today()
+config = None
+
+
+def load_config():
+    global config
+    try:
+        with open("config.json", "r") as config_file:
+            config = json.load(config_file)
+    except FileNotFoundError:
+        print("No config file found. Will send results to stdout.\n")
 
 
 def get_data():
@@ -83,11 +95,42 @@ def print_new_apartments(apts):
         print(f"{i + 1}. {pretty_print(apt)}")
 
 
+def create_email_message(apts):
+    msg = f"""Subject: New apartments on AF Bostäder ({TODAY})
+These new apartments were found:\n\n"""
+
+    for i, apt in enumerate(apts):
+        msg += f"{i + 1}. {pretty_print(apt)}\n"
+    return msg
+
+
+def send_email(message):
+    try:
+        port = config["port"]
+        smtp_server = config["smtpServer"]
+        email = config["email"]
+        password = config["password"]
+    except KeyError:
+        print("Some required configurations is missing, no email will be sent.")
+        return
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP(smtp_server, port) as server:
+        server.starttls(context=context)
+        server.login(email, password)
+        server.sendmail(email, email, message.encode("utf8"))
+
+
 def main():
+    load_config()
     data = get_data()
     filtered_apts = filter_apartments(data)
     new_apts = update_cache(filtered_apts)
-    print_new_apartments(new_apts)
+    if config["sendEmail"]:
+        msg = create_email_message(new_apts)
+        send_email(msg)
+    else:
+        print_new_apartments(new_apts)
 
 
 if __name__ == "__main__":
