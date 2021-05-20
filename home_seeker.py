@@ -10,7 +10,7 @@ from pathlib import Path
 # Should be absolute path or path relative to current directory
 CACHE_FILE = Path(__file__).parent / "apartments.json"
 CONFIG_FILE = Path(__file__).parent / "config.json"
-URL = "https://www.afbostader.se/redimo/rest/vacantproducts"
+URL = "https://api.afbostader.se:442/redimo/rest/vacantproducts"
 TODAY = date.today()
 config = None
 
